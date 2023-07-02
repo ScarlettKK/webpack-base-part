@@ -33,6 +33,28 @@ module.exports = {
                     "style-loader", // 将js中css通过创建style标签的形式，添加到html文件中使样式生效（见打包后网页中的html代码
                     "css-loader" // 将css资源编译成commonjs模块，打包到js中
                 ],
+                // 另一种写法：loader: "xxx"，与use不同，此处只可以使用一个loader，use是多个
+            },
+            {
+                test: /\.less$/,
+                use: [
+                    // compiles Less to CSS
+                    'style-loader',
+                    'css-loader',
+                    'less-loader', // 将less编译成css文件
+                ],
+            },
+            {
+                test: /\.s[ac]ss$/,
+                use: [
+                    'style-loader',
+                    'css-loader',
+                    'sass-loader', // 将sass编译成css文件
+                ],
+            },
+            {
+                test: /\.styl$/,
+                use: ["style-loader", "css-loader", "stylus-loader"],
             },
         ],
     },
