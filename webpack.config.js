@@ -16,8 +16,14 @@ module.exports = {
         // path.resolve()方法返回一个绝对路径
         // __dirname 当前文件的文件夹绝对路径，是一个内置变量
         path: path.resolve(__dirname, "dist"),
-        // filename: 输出文件名
-        filename: "main.js",
+        // filename: 入口js文件输出文件名
+        // 加一个“js/”路径可以让其打包出来的js入口文件分文件夹存放，不乱
+        // 其他文件根据path配置，还是存放于dist文件夹下
+        filename: "js/main.js",
+        // 每次打包都自动清空上次打包结果
+        // webpack5最新功能，无需插件
+        // 原理：在打包之前，将path整个目录清空，再进行打包
+        clean: true,
     },
     // 加载器
     module: {
@@ -55,6 +61,29 @@ module.exports = {
             {
                 test: /\.styl$/,
                 use: ["style-loader", "css-loader", "stylus-loader"],
+            },
+            // 处理图片资源：
+            // 过去在 Webpack4 时，我们处理图片资源通过 file-loader 和 url-loader 进行处理
+            // 现在 Webpack5 已经将两个 Loader 功能内置到 Webpack 里了，我们只需要简单配置即可处理图片资源
+            {
+                test: /\.(png|jpe?g|gif|webp)$/,
+                type: "asset", // 相当于使用 file-loader 和 url-loader 
+                // 有的时候需要将图片转成base64 url
+                // 好处是可以减少请求数量，坏处是会增大图片体积，所以只适用于小图片
+                // 所以下面增加这个配置，对于小于这个size的图片才生效转base64操作
+                parser: {
+                    dataUrlCondition: {// 转base64配置
+                        maxSize: 10 * 1024 // 小于10kb图片转base64
+                    }
+                    // 最后在网页上以及打包后的dist文件中可以验证此效果，打包后图片只有一个，另一个是url
+                    //（最好删了dist再打包，否则图片文件可能会被上一次打包影响
+                },
+                generator: {
+                    // 指定生成的图片存放路径 + 名称
+                    // hash是随机哈希值，ext是原文件扩展名，query是url中的查询参数（如有）
+                    // :10是指哈希值只取前10位，防止名称过长
+                    filename: 'images/[hash:10][ext][query]'
+                }
             },
         ],
     },
