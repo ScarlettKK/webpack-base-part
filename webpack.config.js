@@ -95,6 +95,16 @@ module.exports = {
                     filename: 'fonts/[hash:10][ext][query]'
                 }
             },
+            {
+                test: /\.(map4|map3|avi)$/, // 处理音视频资源
+                type: "asset/resource", // 相当于file-loader，只会对文件原封不动输出，不转base64
+                generator: {
+                    // 指定生成的图片存放路径 + 名称
+                    // hash是随机哈希值，ext是原文件扩展名，query是url中的查询参数（如有）
+                    // :10是指哈希值只取前10位，防止名称过长
+                    filename: 'media/[hash:10][ext][query]'
+                }
+            },
         ],
     },
     // 插件
