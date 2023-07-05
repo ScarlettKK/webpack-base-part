@@ -107,6 +107,11 @@ module.exports = {
                     filename: 'media/[hash:10][ext][query]'
                 }
             },
+            {
+                test: /\.js$/, // babel处理js文件
+                exclude: /node_modules/, // 排除node_modules代码不编译
+                loader: "babel-loader",
+            },
         ],
     },
     // 插件
