@@ -10,5 +10,5 @@ import './styles/index.sass'
 import './styles/index.scss'
 import './styles/index.styl'
 
-console.log(count(1, 2))
-console.log(sum(1, 2, 3, 4, 5))
+console.log(count(2, 1))
+console.log(sum(1, 2, 3, 4, 5, 6))

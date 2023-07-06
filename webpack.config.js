@@ -130,6 +130,15 @@ module.exports = {
             template: path.resolve(__dirname, "index.html"),
         }),
     ],
+    // 开发服务器
+    // 每次更改完代码，都可以自动编译打包，并且刷新页面展示
+    // 运行：npx webpack serve
+    // 注意：开发服务器不会输出dist文件夹下的资源，它只在内存中打包编译展示，此处删除dist文件对他没有影响
+    devServer: {
+        host: "localhost", // 启动服务器域名
+        port: "3000", // 启动服务器端口号
+        open: true, // 是否自动打开浏览器
+    },
     // 模式
     mode: "development", // 开发模式
 };
