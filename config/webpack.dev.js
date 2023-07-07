@@ -137,3 +137,5 @@ module.exports = {
     // 模式
     mode: "development", // 开发模式
 };
+
+// 总结：https://yk2012.github.io/sgg_webpack5/base/summary.html

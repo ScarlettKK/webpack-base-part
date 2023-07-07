@@ -22,6 +22,8 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
  * style-loder会动态创建style标签，我们不再需要此功能
  */
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+// css 代码压缩插件
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 
 // 获取处理样式的Loaders
 // 简化合并重复代码
@@ -159,8 +161,14 @@ module.exports = {
             // 定义输出文件名和目录
             filename: "styles/main.css",
         }),
+        // css压缩
+        // webpack官网放在 optimization 下，配置相对会更麻烦一些，也可以看看
+        new CssMinimizerPlugin(),
     ],
     // 模式
-    // 生产模式下默认会压缩所有输出文件
-    mode: "production", // 开发模式
+    // 默认生产模式已经开启了：html 压缩和 js 压缩
+    // 不需要额外进行配置
+    mode: "production", // 生产模式
 };
+
+// 总结：https://yk2012.github.io/sgg_webpack5/base/summary.html
