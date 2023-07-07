@@ -12,6 +12,16 @@ const path = require("path");
 const ESLintWebpackPlugin = require("eslint-webpack-plugin");
 // html插件也是一样
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+/**
+ * Css 文件目前被打包到 js 文件中，当 js 文件加载时，会创建一个 style 标签来生成样式
+ * 这样对于网站来说，会出现闪屏现象，用户体验不好
+ * 我们应该是单独的 Css 文件，通过 link 标签加载性能才好
+ * 本插件会将 CSS 提取到单独的文件中，为每个包含 CSS 的 JS 文件创建一个 CSS 文件
+ * 并且支持 CSS 和 SourceMaps 的按需加载
+ * 下文需要将 style-loder 全部替换成 MiniCssExtractPlugin.loader
+ * style-loder会动态创建style标签，我们不再需要此功能
+ */
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
     // 入口
@@ -45,7 +55,7 @@ module.exports = {
                 // 执行顺序：从下到上，先执行css，后执行style
                 // 看完下面两个的作用就知道为什么有顺序
                 use: [
-                    "style-loader", // 将js中css通过创建style标签的形式，添加到html文件中使样式生效（见打包后网页中的html代码
+                    MiniCssExtractPlugin.loader, // 将js中css通过创建style标签的形式，添加到html文件中使样式生效（见打包后网页中的html代码
                     "css-loader" // 将css资源编译成commonjs模块，打包到js中
                 ],
                 // 另一种写法：loader: "xxx"，与use不同，此处只可以使用一个loader，use是多个
@@ -54,7 +64,7 @@ module.exports = {
                 test: /\.less$/,
                 use: [
                     // compiles Less to CSS
-                    'style-loader',
+                    MiniCssExtractPlugin.loader,
                     'css-loader',
                     'less-loader', // 将less编译成css文件
                 ],
@@ -62,14 +72,14 @@ module.exports = {
             {
                 test: /\.s[ac]ss$/,
                 use: [
-                    'style-loader',
+                    MiniCssExtractPlugin.loader,
                     'css-loader',
                     'sass-loader', // 将sass编译成css文件
                 ],
             },
             {
                 test: /\.styl$/,
-                use: ["style-loader", "css-loader", "stylus-loader"],
+                use: [MiniCssExtractPlugin.loader, "css-loader", "stylus-loader"],
             },
             // 处理图片资源：
             // 过去在 Webpack4 时，我们处理图片资源通过 file-loader 和 url-loader 进行处理
@@ -132,7 +142,13 @@ module.exports = {
         new HtmlWebpackPlugin({
             // 以 index.html 为模板创建文件
             // 新的html文件有两个特点：1. 内容和源文件一致 2. 自动引入打包生成的js等资源
+            // 下面的css文件也会被自动创建link标签引入
             template: path.resolve(__dirname, "../index.html"),
+        }),
+        // 提取css成单独文件
+        new MiniCssExtractPlugin({
+            // 定义输出文件名和目录
+            filename: "styles/main.css",
         }),
     ],
     // 模式
