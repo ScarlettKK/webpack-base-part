@@ -56,7 +56,19 @@ module.exports = {
                 // 看完下面两个的作用就知道为什么有顺序
                 use: [
                     MiniCssExtractPlugin.loader, // 将js中css通过创建style标签的形式，添加到html文件中使样式生效（见打包后网页中的html代码
-                    "css-loader" // 将css资源编译成commonjs模块，打包到js中
+                    "css-loader", // 将css资源编译成commonjs模块，打包到js中
+                    {
+                        // 如果需要配置loader，需要写成对象形式，否则一个字符串搞定
+                        loader: "postcss-loader",
+                        // loader 配置项
+                        options: {
+                            postcssOptions: {
+                                plugins: [
+                                    "postcss-preset-env", // 能解决大多数样式兼容性问题
+                                ],
+                            },
+                        },
+                    },
                 ],
                 // 另一种写法：loader: "xxx"，与use不同，此处只可以使用一个loader，use是多个
             },
@@ -66,6 +78,17 @@ module.exports = {
                     // compiles Less to CSS
                     MiniCssExtractPlugin.loader,
                     'css-loader',
+                    {
+                        // 注意位置，在less之后
+                        loader: "postcss-loader",
+                        options: {
+                            postcssOptions: {
+                                plugins: [
+                                    "postcss-preset-env", // 能解决大多数样式兼容性问题
+                                ],
+                            },
+                        },
+                    },
                     'less-loader', // 将less编译成css文件
                 ],
             },
@@ -74,12 +97,38 @@ module.exports = {
                 use: [
                     MiniCssExtractPlugin.loader,
                     'css-loader',
+                    {
+                        // 注意位置，在sass之后
+                        loader: "postcss-loader",
+                        options: {
+                            postcssOptions: {
+                                plugins: [
+                                    "postcss-preset-env", // 能解决大多数样式兼容性问题
+                                ],
+                            },
+                        },
+                    },
                     'sass-loader', // 将sass编译成css文件
                 ],
             },
             {
                 test: /\.styl$/,
-                use: [MiniCssExtractPlugin.loader, "css-loader", "stylus-loader"],
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    "css-loader",
+                    {
+                        // 注意位置，在stylus之后
+                        loader: "postcss-loader",
+                        options: {
+                            postcssOptions: {
+                                plugins: [
+                                    "postcss-preset-env", // 能解决大多数样式兼容性问题
+                                ],
+                            },
+                        },
+                    },
+                    "stylus-loader"
+                ],
             },
             // 处理图片资源：
             // 过去在 Webpack4 时，我们处理图片资源通过 file-loader 和 url-loader 进行处理

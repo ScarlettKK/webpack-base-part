@@ -1,4 +1,6 @@
 .box1 {
+    display: flex;
+    justify-content: center;
     color: #999;
     background-image: url('../assets/images/image.png');
 }
