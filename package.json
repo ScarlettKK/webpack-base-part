@@ -4,7 +4,10 @@
   "description": "",
   "main": "./src/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "说明": "为什么要多定义一个start? 因为有命令行npm start, 但是dev只能npm run dev",
+    "start": "npm run dev",
+    "dev": "npx webpack serve --config ./config/webpack.dev.js",
+    "build": "npx webpack --config ./config/webpack.prod.js"
   },
   "keywords": [],
   "author": "",

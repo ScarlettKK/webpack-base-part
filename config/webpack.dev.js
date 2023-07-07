@@ -1,4 +1,6 @@
-// 顺序无要求，但要注意文件名以及文件位置
+// 用于dev环境下的配置
+// npx webpack serve --config ./config/webpack.dev.js
+// 配置对象顺序无要求，但要注意文件名以及文件位置
 // 有了此配置文件后，webpack运行指令变得简单了
 // 之前的指令，适用于无配置文件：npx webpack ./src/main.js --mode=production
 // 新指令：npx webpack
@@ -12,22 +14,14 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
     // 入口
-    // 相对路径和绝对路径都行，此处是相对路径
+    // 相对路径和绝对路径都行，此处是相对路径，就是相对base-part整个文件夹的路径，所以不需要更改
     entry: "./src/main.js",
     // 输出
     output: {
-        // path: 文件输出目录，必须是绝对路径
-        // path.resolve()方法返回一个绝对路径
-        // __dirname 当前文件的文件夹绝对路径，是一个内置变量
-        path: path.resolve(__dirname, "dist"),
-        // filename: 入口js文件输出文件名
-        // 加一个“js/”路径可以让其打包出来的js入口文件分文件夹存放，不乱
-        // 其他文件根据path配置，还是存放于dist文件夹下
+        // 开发模式下不需要输出
+        path: undefined,
+        // 没有输出，但是文件名还是需要指定的，用于内存中使用
         filename: "js/main.js",
-        // 每次打包都自动清空上次打包结果
-        // webpack5最新功能，无需插件
-        // 原理：在打包之前，将path整个目录清空，再进行打包
-        clean: true,
     },
     // 加载器
     module: {
@@ -122,12 +116,13 @@ module.exports = {
         // 下面是eslint插件
         new ESLintWebpackPlugin({
             // 指定检查文件的根目录
-            context: path.resolve(__dirname, "src"),
+            // 绝对路径都需要回退一层，因为__dirname是当前绝对路径，当前在config目录下
+            context: path.resolve(__dirname, "../src"),
         }),
         new HtmlWebpackPlugin({
             // 以 index.html 为模板创建文件
             // 新的html文件有两个特点：1. 内容和源文件一致 2. 自动引入打包生成的js等资源
-            template: path.resolve(__dirname, "index.html"),
+            template: path.resolve(__dirname, "../index.html"),
         }),
     ],
     // 开发服务器
