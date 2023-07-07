@@ -23,6 +23,27 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
  */
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
+// 获取处理样式的Loaders
+// 简化合并重复代码
+const getStyleLoaders = (preProcessor) => {
+    return [
+        MiniCssExtractPlugin.loader,
+        "css-loader",
+        {
+            // 注意位置，在less、sass、stylus loader之后
+            loader: "postcss-loader",
+            options: {
+                postcssOptions: {
+                    plugins: [
+                        "postcss-preset-env", // 能解决大多数样式兼容性问题
+                    ],
+                },
+            },
+        },
+        preProcessor,
+    ].filter(Boolean); //这里过滤undefined
+};
+
 module.exports = {
     // 入口
     // 相对路径和绝对路径都行，此处是相对路径，就是相对base-part整个文件夹的路径，所以不需要更改
@@ -54,81 +75,20 @@ module.exports = {
                 // 使用什么laoder去处理这些文件
                 // 执行顺序：从下到上，先执行css，后执行style
                 // 看完下面两个的作用就知道为什么有顺序
-                use: [
-                    MiniCssExtractPlugin.loader, // 将js中css通过创建style标签的形式，添加到html文件中使样式生效（见打包后网页中的html代码
-                    "css-loader", // 将css资源编译成commonjs模块，打包到js中
-                    {
-                        // 如果需要配置loader，需要写成对象形式，否则一个字符串搞定
-                        loader: "postcss-loader",
-                        // loader 配置项
-                        options: {
-                            postcssOptions: {
-                                plugins: [
-                                    "postcss-preset-env", // 能解决大多数样式兼容性问题
-                                ],
-                            },
-                        },
-                    },
-                ],
+                use: getStyleLoaders(),
                 // 另一种写法：loader: "xxx"，与use不同，此处只可以使用一个loader，use是多个
             },
             {
                 test: /\.less$/,
-                use: [
-                    // compiles Less to CSS
-                    MiniCssExtractPlugin.loader,
-                    'css-loader',
-                    {
-                        // 注意位置，在less之后
-                        loader: "postcss-loader",
-                        options: {
-                            postcssOptions: {
-                                plugins: [
-                                    "postcss-preset-env", // 能解决大多数样式兼容性问题
-                                ],
-                            },
-                        },
-                    },
-                    'less-loader', // 将less编译成css文件
-                ],
+                use: getStyleLoaders('less-loader'),
             },
             {
                 test: /\.s[ac]ss$/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    'css-loader',
-                    {
-                        // 注意位置，在sass之后
-                        loader: "postcss-loader",
-                        options: {
-                            postcssOptions: {
-                                plugins: [
-                                    "postcss-preset-env", // 能解决大多数样式兼容性问题
-                                ],
-                            },
-                        },
-                    },
-                    'sass-loader', // 将sass编译成css文件
-                ],
+                use: getStyleLoaders('sass-loader'),
             },
             {
                 test: /\.styl$/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    "css-loader",
-                    {
-                        // 注意位置，在stylus之后
-                        loader: "postcss-loader",
-                        options: {
-                            postcssOptions: {
-                                plugins: [
-                                    "postcss-preset-env", // 能解决大多数样式兼容性问题
-                                ],
-                            },
-                        },
-                    },
-                    "stylus-loader"
-                ],
+                use: getStyleLoaders('stylus-loader'),
             },
             // 处理图片资源：
             // 过去在 Webpack4 时，我们处理图片资源通过 file-loader 和 url-loader 进行处理
