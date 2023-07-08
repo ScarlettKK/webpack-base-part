@@ -112,7 +112,22 @@ module.exports = {
                     },
                     {
                         test: /\.js$/, // babel处理js文件
-                        exclude: /node_modules/, // 排除node_modules代码不编译
+                        /**
+                         * 开发时我们需要使用第三方的库或插件，所有文件都下载到 node_modules 中了。
+                         * 而这些文件是不需要编译可以直接使用的。
+                         * 所以我们在对 js 文件处理时，要排除 node_modules 下面的文件。
+                         * include: 包含，只处理 xxx 文件
+                         * exclude: 排除，除了 xxx 文件以外其他文件都处理
+                         * 【注意！】include跟exclude只能写其中一个，不能两个同时写
+                         * 
+                         * 此功能针对js文件使用多，所以这里例子用在eslint以及babel上
+                         *  
+                         * 样式文件一般不作此处理，原因如下：
+                         * 基本上开发的时候引入第三方样式少
+                         * 即使引入了第三方样式，最后也希望它跟我们自定义的样式打包在一起
+                         */
+                        // exclude: /node_modules/, // 排除node_modules代码不编译，其他文件都处理
+                        include: path.resolve(__dirname, "../src"), // 也可以用包含，只处理src下文件
                         loader: "babel-loader",
                     },
                 ]
@@ -127,6 +142,7 @@ module.exports = {
             // 指定检查文件的根目录
             // 绝对路径都需要回退一层，因为__dirname是当前绝对路径，当前在config目录下
             context: path.resolve(__dirname, "../src"),
+            exclude: "node_modules", // 默认值，不写也有效果
         }),
         new HtmlWebpackPlugin({
             // 以 index.html 为模板创建文件
