@@ -4,8 +4,9 @@
   "description": "",
   "main": "./src/main.js",
   "scripts": {
-    "说明": "为什么要多定义一个start? 因为有命令行npm start, 但是dev只能npm run dev",
+    "说明1": "为什么要多定义一个start? 因为有命令行npm start, 但是dev只能npm run dev",
     "start": "npm run dev",
+    "说明2": "注意 webpack 命令与 webpack serve 命令的区, 一个仅打包, 一个仅启动服务器",
     "dev": "npx webpack serve --config ./config/webpack.dev.js",
     "build": "npx webpack --config ./config/webpack.prod.js"
   },

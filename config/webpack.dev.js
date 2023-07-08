@@ -135,7 +135,17 @@ module.exports = {
         open: true, // 是否自动打开浏览器
     },
     // 模式
-    mode: "development", // 开发模式
+    mode: "development", // 开发模式,
+    /**
+     * SourceMap（源代码映射）是一个用来生成源代码与构建后代码一一映射的文件的方案。
+     * 它会生成一个 xxx.map 文件，里面包含源代码和构建后代码每一行、每一列的映射关系。
+     * 当构建后代码出错了，会通过 xxx.map 文件，从构建后代码出错位置找到映射后源代码出错位置
+     * 从而让浏览器提示源代码文件出错位置，帮助我们更快的找到错误根源。
+     * 开发模式：cheap-module-source-map
+     * 优点：打包编译速度快，只包含行映射
+     * 缺点：没有列映射
+     */
+    devtool: "cheap-module-source-map",
 };
 
-// 总结：https://yk2012.github.io/sgg_webpack5/base/summary.html
+// 基础篇总结：https://yk2012.github.io/sgg_webpack5/base/summary.html
