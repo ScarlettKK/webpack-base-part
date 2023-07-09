@@ -1,5 +1,6 @@
 import count from './utils/count'
 import sum from './utils/sum'
+import { used } from './utils/treeShaking'
 
 // 要想webpack打包资源，必须引入该资源，css等样式资源也不例外
 import './assets/icons/iconfont.css'
@@ -12,6 +13,7 @@ import './styles/index.styl'
 
 console.log(count(2, 1))
 console.log(sum(1, 2, 3, 4, 5, 6))
+used()
 
 // 判断是否支持热模块替换功能
 if (module.hot) {
