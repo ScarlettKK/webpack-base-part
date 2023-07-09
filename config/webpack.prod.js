@@ -161,6 +161,20 @@ module.exports = {
                         // exclude: /node_modules/, // 排除node_modules代码不编译，其他文件都处理
                         include: path.resolve(__dirname, "../src"), // 也可以用包含，只处理src下文件
                         loader: "babel-loader",
+                        /**
+                          * 为什么?
+                          * 一般项目中最大比例的就是js文件
+                          * 主要处理js的工具是： Eslint 检查 和 Babel 编译
+                          * 每次打包时 js 文件都要经过 Eslint 检查 和 Babel 编译，速度比较慢。
+                          * 我们可以缓存之前的 Eslint 检查 和 Babel 编译结果，这样第二次打包时速度就会更快了。
+                          * 是什么?
+                          * 【对 Eslint 检查 和 Babel 编译结果进行缓存】
+                          * 注意提升的是第二次第三次第四次打包速度，首次还是要全打包的
+                          */
+                        options: {
+                            cacheDirectory: true, // 开启babel编译缓存
+                            cacheCompression: false, // 缓存文件不要压缩，因为压缩需要时间，代码上线时用不上缓存文件，体积大小不影响加载速度，只会占点内存
+                        },
                     },
                 ]
             }
@@ -174,6 +188,12 @@ module.exports = {
             // 指定检查文件的根目录
             context: path.resolve(__dirname, "../src"),
             exclude: "node_modules", // 默认值，不写也有效果
+            cache: true, // 开启缓存
+            // 缓存目录
+            cacheLocation: path.resolve(
+                __dirname,
+                "../node_modules/.cache/.eslintcache"
+            ),
         }),
         new HtmlWebpackPlugin({
             // 以 index.html 为模板创建文件
