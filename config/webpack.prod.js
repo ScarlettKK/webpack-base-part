@@ -25,6 +25,31 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 // css 代码压缩插件
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 
+/**
+ * Thead：为什么？
+ * 当项目越来越庞大时，打包速度越来越慢，甚至于需要一个下午才能打包出来代码。这个速度是比较慢的。
+ * 我们想要继续提升打包速度，其实就是要提升 js 的打包速度，因为其他文件都比较少。
+ * 而对 js 文件处理主要就是 eslint 、babel、Terser 三个工具，所以我们要提升它们的运行速度。
+ * 注：Terser 为 webpack 自带，用于压缩文件，生产模式下自动开启
+ * 我们可以开启多进程同时处理 js 文件，这样速度就比之前的单进程打包更快了。
+ * 
+ * Thead：是什么？
+ * 多进程打包：开启电脑的多个进程同时干一件事，速度更快。
+ * 需要注意：请【仅在特别耗时的操作中使用】，因为每个进程启动就有大约为 600ms 左右开销。
+ * 也就是文件多的时候才有提升性能的效果，文件少的时候会让打包更慢
+ * 
+ * Thead：使用方法见下面
+ */
+// nodejs核心模块，直接使用
+const os = require("os");
+// 我们启动进程的数量就是我们 CPU 的核数
+// 下面是获取 CPU 的核数，因为每个电脑都不一样
+// 超过电脑核数就做不了
+// 这里还要用一个 thread-loader 来实现功能，可以自行下载
+const threads = os.cpus().length;
+// 这里也需要处理一下Terser多进程，注意Terser是webpack自带，不需要另外下载什么
+const TerserPlugin = require("terser-webpack-plugin");
+
 // 获取处理样式的Loaders
 // 简化合并重复代码
 const getStyleLoaders = (preProcessor) => {
@@ -160,21 +185,36 @@ module.exports = {
                          */
                         // exclude: /node_modules/, // 排除node_modules代码不编译，其他文件都处理
                         include: path.resolve(__dirname, "../src"), // 也可以用包含，只处理src下文件
-                        loader: "babel-loader",
+                        // 使用 thread多线程 后 js 需要多个 loader处理，所以这里改为use
+                        use: [
+                            {
+                                loader: "thread-loader", // 开启多进程
+                                options: {
+                                    workers: threads, // 电脑内核数量，也是进程数量
+                                },
+                            },
+                            {
+                                loader: "babel-loader",
+                                options: {
+                                    cacheDirectory: true, // 开启babel编译缓存
+                                },
+                            },
+                        ],
                         /**
-                          * 为什么?
+                          * cache: 为什么?
                           * 一般项目中最大比例的就是js文件
                           * 主要处理js的工具是： Eslint 检查 和 Babel 编译
                           * 每次打包时 js 文件都要经过 Eslint 检查 和 Babel 编译，速度比较慢。
                           * 我们可以缓存之前的 Eslint 检查 和 Babel 编译结果，这样第二次打包时速度就会更快了。
-                          * 是什么?
+                          * cache: 是什么?
                           * 【对 Eslint 检查 和 Babel 编译结果进行缓存】
                           * 注意提升的是第二次第三次第四次打包速度，首次还是要全打包的
                           */
-                        options: {
-                            cacheDirectory: true, // 开启babel编译缓存
-                            cacheCompression: false, // 缓存文件不要压缩，因为压缩需要时间，代码上线时用不上缓存文件，体积大小不影响加载速度，只会占点内存
-                        },
+                        // 注意：这里的options配置不能与use配置共存
+                        // options: {
+                        //     cacheDirectory: true, // 开启babel编译缓存
+                        //     cacheCompression: false, // 缓存文件不要压缩，因为压缩需要时间，代码上线时用不上缓存文件，体积大小不影响加载速度，只会占点内存
+                        // },
                     },
                 ]
             }
@@ -194,6 +234,7 @@ module.exports = {
                 __dirname,
                 "../node_modules/.cache/.eslintcache"
             ),
+            threads, // 开启多进程+设置进程数量，threads是电脑核数，也是进程数
         }),
         new HtmlWebpackPlugin({
             // 以 index.html 为模板创建文件
@@ -206,10 +247,31 @@ module.exports = {
             // 定义输出文件名和目录
             filename: "styles/main.css",
         }),
+        //下面的压缩方式是旧的webpack4
+
         // css压缩
-        // webpack官网放在 optimization 下，配置相对会更麻烦一些，也可以看看
-        new CssMinimizerPlugin(),
+        // webpack官网放在 optimization 下，配置相对会更麻烦一些，也可以看看下面
+        // new CssMinimizerPlugin(),
+
+        // 配置Terser多进程方式1
+        // new TerserPlugin({
+        //     parallel: threads // 开启多进程
+        // })
     ],
+    optimization: {
+        // webpack5 推荐压缩配置方式：
+        minimize: true,
+        minimizer: [
+            // css压缩也可以写到optimization.minimizer里面，效果一样的
+            new CssMinimizerPlugin(),
+            // 配置Terser多进程方式2
+            // 当生产模式会默认开启TerserPlugin，
+            // 但是这里我们需要进行其他配置（threads），就要重新写了
+            new TerserPlugin({
+                parallel: threads // 开启多进程
+            })
+        ],
+    },
     // 模式
     // 默认生产模式已经开启了 js 压缩
     // 如果添加了 HtmlWebpackPlugin 插件，则会在生产模式下默认开启 html 压缩

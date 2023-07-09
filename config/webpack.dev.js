@@ -12,6 +12,29 @@ const ESLintWebpackPlugin = require("eslint-webpack-plugin");
 // html插件也是一样
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
+/**
+ * Thead：为什么？
+ * 当项目越来越庞大时，打包速度越来越慢，甚至于需要一个下午才能打包出来代码。这个速度是比较慢的。
+ * 我们想要继续提升打包速度，其实就是要提升 js 的打包速度，因为其他文件都比较少。
+ * 而对 js 文件处理主要就是 eslint 、babel、Terser 三个工具，所以我们要提升它们的运行速度。
+ * 注：Terser 为 webpack 自带，用于压缩文件，生产模式下自动开启，此处是开发模式，不做处理
+ * 我们可以开启多进程同时处理 js 文件，这样速度就比之前的单进程打包更快了。
+ * 
+ * Thead：是什么？
+ * 多进程打包：开启电脑的多个进程同时干一件事，速度更快。
+ * 需要注意：请【仅在特别耗时的操作中使用】，因为每个进程启动就有大约为 600ms 左右开销。
+ * 也就是文件多的时候才有提升性能的效果，文件少的时候会让打包更慢
+ * 
+ * Thead：使用方法见下面
+ */
+// nodejs核心模块，直接使用
+const os = require("os");
+// 我们启动进程的数量就是我们 CPU 的核数
+// 下面是获取 CPU 的核数，因为每个电脑都不一样
+// 超过电脑核数就做不了
+// 这里还要用一个 thread-loader 来实现功能，可以自行下载
+const threads = os.cpus().length;
+
 module.exports = {
     // 入口
     // 相对路径和绝对路径都行，此处是相对路径，就是相对base-part整个文件夹的路径，所以不需要更改
@@ -128,21 +151,35 @@ module.exports = {
                          */
                         // exclude: /node_modules/, // 排除node_modules代码不编译，其他文件都处理
                         include: path.resolve(__dirname, "../src"), // 也可以用包含，只处理src下文件
-                        loader: "babel-loader",
+                        use: [
+                            {
+                                loader: "thread-loader", // 开启多进程
+                                options: {
+                                    workers: threads, // 电脑内核数量，也是进程数量
+                                },
+                            },
+                            {
+                                loader: "babel-loader",
+                                options: {
+                                    cacheDirectory: true, // 开启babel编译缓存
+                                },
+                            },
+                        ],
                         /**
-                         * 为什么?
-                         * 一般项目中最大比例的就是js文件
-                         * 主要处理js的工具是： Eslint 检查 和 Babel 编译
-                         * 每次打包时 js 文件都要经过 Eslint 检查 和 Babel 编译，速度比较慢。
-                         * 我们可以缓存之前的 Eslint 检查 和 Babel 编译结果，这样第二次打包时速度就会更快了。
-                         * 是什么?
-                         * 【对 Eslint 检查 和 Babel 编译结果进行缓存】
-                         * 注意提升的是第二次第三次第四次打包速度，首次还是要全打包的
-                         */
-                        options: {
-                            cacheDirectory: true, // 开启babel编译缓存
-                            cacheCompression: false, // 缓存文件不要压缩，因为压缩需要时间，代码上线时用不上缓存文件，体积大小不影响加载速度，只会占点内存
-                        },
+                          * cache: 为什么?
+                          * 一般项目中最大比例的就是js文件
+                          * 主要处理js的工具是： Eslint 检查 和 Babel 编译
+                          * 每次打包时 js 文件都要经过 Eslint 检查 和 Babel 编译，速度比较慢。
+                          * 我们可以缓存之前的 Eslint 检查 和 Babel 编译结果，这样第二次打包时速度就会更快了。
+                          * cache: 是什么?
+                          * 【对 Eslint 检查 和 Babel 编译结果进行缓存】
+                          * 注意提升的是第二次第三次第四次打包速度，首次还是要全打包的
+                          */
+                        // 注意：这里的options配置不能与use配置共存
+                        // options: {
+                        //     cacheDirectory: true, // 开启babel编译缓存
+                        //     cacheCompression: false, // 缓存文件不要压缩，因为压缩需要时间，代码上线时用不上缓存文件，体积大小不影响加载速度，只会占点内存
+                        // },
                     },
                 ]
             }
@@ -163,6 +200,7 @@ module.exports = {
                 __dirname,
                 "../node_modules/.cache/.eslintcache"
             ),
+            threads, // 开启多进程+设置进程数量，threads是电脑核数，也是进程数
         }),
         new HtmlWebpackPlugin({
             // 以 index.html 为模板创建文件
