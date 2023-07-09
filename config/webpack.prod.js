@@ -195,26 +195,37 @@ module.exports = {
                             },
                             {
                                 loader: "babel-loader",
+                                /**
+                                 * cache: 为什么?
+                                 * 一般项目中最大比例的就是js文件
+                                 * 主要处理js的工具是： Eslint 检查 和 Babel 编译
+                                 * 每次打包时 js 文件都要经过 Eslint 检查 和 Babel 编译，速度比较慢。
+                                 * 我们可以缓存之前的 Eslint 检查 和 Babel 编译结果，这样第二次打包时速度就会更快了。
+                                 * cache: 是什么?
+                                 * 【对 Eslint 检查 和 Babel 编译结果进行缓存】
+                                 * 注意提升的是第二次第三次第四次打包速度，首次还是要全打包的
+                                 */
                                 options: {
                                     cacheDirectory: true, // 开启babel编译缓存
+                                    cacheCompression: false, // 缓存文件不要压缩，因为压缩需要时间，代码上线时用不上缓存文件，体积大小不影响加载速度，只会占点内存
+                                    /**
+                                    * @babel/plugin-transform-runtime插件：为什么?
+                                    * Babel 为编译的每个文件都插入了辅助代码，使代码体积过大！
+                                    * Babel 对一些公共方法使用了非常小的辅助代码，比如 _extend。
+                                    * 默认情况下会被添加到每一个需要它的文件中，假设有10个文件用到它，他就被定义10次
+                                    * 你可以将这些辅助代码作为一个独立模块，来避免重复引入。
+                                    * 
+                                    * @babel/plugin-transform-runtime插件：是什么?
+                                    * @babel/plugin-transform-runtime: 禁用了 Babel 自动对每个文件的 runtime 注入，
+                                    * 而是引入 @babel/plugin-transform-runtime 并且使所有辅助代码从这里引用。
+                                    * 相当于这是一个全局方法包，大家都从这里引入
+                                    */
+                                    plugins: ["@babel/plugin-transform-runtime"], // 减少代码体积
                                 },
+
                             },
                         ],
-                        /**
-                          * cache: 为什么?
-                          * 一般项目中最大比例的就是js文件
-                          * 主要处理js的工具是： Eslint 检查 和 Babel 编译
-                          * 每次打包时 js 文件都要经过 Eslint 检查 和 Babel 编译，速度比较慢。
-                          * 我们可以缓存之前的 Eslint 检查 和 Babel 编译结果，这样第二次打包时速度就会更快了。
-                          * cache: 是什么?
-                          * 【对 Eslint 检查 和 Babel 编译结果进行缓存】
-                          * 注意提升的是第二次第三次第四次打包速度，首次还是要全打包的
-                          */
-                        // 注意：这里的options配置不能与use配置共存
-                        // options: {
-                        //     cacheDirectory: true, // 开启babel编译缓存
-                        //     cacheCompression: false, // 缓存文件不要压缩，因为压缩需要时间，代码上线时用不上缓存文件，体积大小不影响加载速度，只会占点内存
-                        // },
+
                     },
                 ]
             }
