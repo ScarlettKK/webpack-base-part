@@ -49,6 +49,16 @@ const os = require("os");
 const threads = os.cpus().length;
 // 这里也需要处理一下Terser多进程，注意Terser是webpack自带，不需要另外下载什么
 const TerserPlugin = require("terser-webpack-plugin");
+/**
+ * 开发如果项目中引用了较多图片，那么图片体积会比较大，将来请求速度比较慢。
+ * 我们可以对图片进行压缩，减少图片体积。
+ * 
+ * 注意：如果项目中图片都是在线链接，那么就不需要了。
+ * 本地项目静态图片才需要进行压缩
+ * 
+ * image-minimizer-webpack-plugin: 用来压缩图片的插件
+ */
+const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
 
 // 获取处理样式的Loaders
 // 简化合并重复代码
@@ -280,7 +290,37 @@ module.exports = {
             // 但是这里我们需要进行其他配置（threads），就要重新写了
             new TerserPlugin({
                 parallel: threads // 开启多进程
-            })
+            }),
+            // 压缩图片
+            // 注意有无损有损两种模式，这里的例子是无损，可以去官网看看ImageMinimizerPlugin官方文档
+            // 无损有损选一种即可
+            new ImageMinimizerPlugin({
+                minimizer: {
+                    implementation: ImageMinimizerPlugin.imageminGenerate,
+                    options: {
+                        plugins: [
+                            ["gifsicle", { interlaced: true }],
+                            ["jpegtran", { progressive: true }],
+                            ["optipng", { optimizationLevel: 5 }],
+                            [
+                                "svgo",
+                                {
+                                    plugins: [
+                                        "preset-default",
+                                        "prefixIds",
+                                        {
+                                            name: "sortAttrs",
+                                            params: {
+                                                xmlnsOrder: "alphabetical",
+                                            },
+                                        },
+                                    ],
+                                },
+                            ],
+                        ],
+                    },
+                },
+            }),
         ],
     },
     // 模式
