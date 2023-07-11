@@ -59,6 +59,48 @@ const TerserPlugin = require("terser-webpack-plugin");
  * image-minimizer-webpack-plugin: 用来压缩图片的插件
  */
 const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
+/**
+ * 为什么？
+ * 我们前面已经做了代码分割，同时会使用 import 动态导入语法来进行代码按需加载（我们也叫懒加载，比如路由懒加载就是这样实现的）。
+ * 但是加载速度还不够好，比如：是用户点击按钮时才加载这个资源的，如果【资源体积很大】，那么用户会感觉到明显卡顿效果。
+ * 我们想在浏览器空闲时间，加载后续需要使用的资源。我们就需要用上 Preload 或 Prefetch 技术。
+ * 
+ * 是什么？
+ * Preload：告诉浏览器立即加载资源。
+ * Prefetch：告诉浏览器在空闲时才开始加载资源。
+ * 
+ * 它们共同点：
+ * 都只会加载资源，并不执行。都有缓存。
+ * 资源加载完成之前就已经完成了渲染，所以通过这两种方式资源的加载都不会阻塞关键渲染路径
+ * 
+ * 它们区别：
+ * Preload加载优先级高，Prefetch加载优先级低。
+ * Preload只能加载当前页面需要使用的资源，
+ * Prefetch可以加载当前页面资源，也可以加载下一个页面需要使用的资源。
+ * 使用 preload 会将资源优先级设置为 Highest，而使用 prefetch 会将资源优先级设置为 Lowest，Lowest 资源将会在网络空闲时才开始加载
+ * 
+ * 更多区别：
+ * preload 是一个声明式 fetch，可以强制浏览器在不阻塞 document 的 onload 事件的情况下请求资源。
+ * preload 顾名思义就是一种预加载的方式，它通过声明向浏览器声明一个需要提交加载的资源，当资源真正被使用的时候立即执行，就无需等待网络的消耗。
+ * prefetch 告诉浏览器这个资源将来可能需要，但是什么时间加载这个资源是由浏览器来决定的。
+ * 若能预测到用户的行为，比如懒加载，点击到其它页面等则相当于提前预加载了需要的资源。
+ * 
+ * 优先级详情：
+ * 见src/asset下的：资源加载优先级.png
+ * 没有加preload跟加了preload是一个优先级，但是看起来没有加preload的请求更先一些
+ * 先html =》 js（无论有无preload） =》css =》 图片等资源
+ * 
+ * 总结：
+ * 当前页面优先级高的资源用 Preload 加载。
+ * 下一个页面需要使用的资源用 Prefetch 加载。
+ * 
+ * 它们的问题：兼容性较差。
+ * 我们可以去 Can I Use 网站查询 API 的兼容性问题。
+ * Preload 相对于 Prefetch 兼容性好一点
+ */
+// 打包过后可以看到代码多了这一项：<link href="js/sum.chunk.js" rel="preload" as="script">
+// 针对动态加载不分的代码
+const PreloadWebpackPlugin = require("@vue/preload-webpack-plugin");
 
 // 获取处理样式的Loaders
 // 简化合并重复代码
@@ -291,6 +333,11 @@ module.exports = {
         // new TerserPlugin({
         //     parallel: threads // 开启多进程
         // })
+        new PreloadWebpackPlugin({
+            rel: "preload", // preload兼容性更好
+            as: "script",
+            // rel: 'prefetch' // prefetch兼容性更差，注意不需要配置“as”
+        }),
     ],
     optimization: {
         // webpack5 推荐压缩配置方式：
