@@ -44,7 +44,14 @@ module.exports = {
         // 开发模式下不需要输出
         path: undefined,
         // 没有输出，但是文件名还是需要指定的，用于内存中使用
-        filename: "js/main.js",
+        // 这里用[name].js，防止改成多文件入口的时候打包错乱，这样可以单/多都兼容
+        filename: "js/[name].js",
+        // 动态导入文件（打包生成的其他文件，非入口文件）的输出资源命名方式
+        // 除了这里还需要在文件中import的地方配置 webpackChunkName: "sum"：
+        // 使用.chunk.js可以区分主文件跟其他文件
+        chunkFilename: "js/[name].chunk.js",
+        // 图片、字体等通过 type:asset* 处理资源命名方式（注意用hash）
+        assetModuleFilename: "assets/[hash:10][ext][query]",
     },
     // 加载器
     module: {
@@ -106,32 +113,35 @@ module.exports = {
                             // 最后在网页上以及打包后的dist文件中可以验证此效果，打包后图片只有一个，另一个是url
                             //（最好删了dist再打包，否则图片文件可能会被上一次打包影响
                         },
-                        generator: {
-                            // 指定生成的图片存放路径 + 名称
-                            // hash是随机哈希值，ext是原文件扩展名，query是url中的查询参数（如有）
-                            // :10是指哈希值只取前10位，防止名称过长
-                            filename: 'images/[hash:10][ext][query]'
-                        }
+                        // 上面统一配置 assetModuleFilename，不重复定义
+                        // generator: {
+                        //     // 指定生成的图片存放路径 + 名称
+                        //     // hash是随机哈希值，ext是原文件扩展名，query是url中的查询参数（如有）
+                        //     // :10是指哈希值只取前10位，防止名称过长
+                        //     filename: 'images/[hash:10][ext][query]'
+                        // }
                     },
                     {
                         test: /\.(ttf|woff2?)$/,
                         type: "asset/resource", // 相当于file-loader，只会对文件原封不动输出，不转base64
-                        generator: {
-                            // 指定生成的图片存放路径 + 名称
-                            // hash是随机哈希值，ext是原文件扩展名，query是url中的查询参数（如有）
-                            // :10是指哈希值只取前10位，防止名称过长
-                            filename: 'fonts/[hash:10][ext][query]'
-                        }
+                        // 上面统一配置 assetModuleFilename，不重复定义
+                        // generator: {
+                        //     // 指定生成的图片存放路径 + 名称
+                        //     // hash是随机哈希值，ext是原文件扩展名，query是url中的查询参数（如有）
+                        //     // :10是指哈希值只取前10位，防止名称过长
+                        //     filename: 'fonts/[hash:10][ext][query]'
+                        // }
                     },
                     {
                         test: /\.(map4|map3|avi)$/, // 处理音视频资源
                         type: "asset/resource", // 相当于file-loader，只会对文件原封不动输出，不转base64
-                        generator: {
-                            // 指定生成的图片存放路径 + 名称
-                            // hash是随机哈希值，ext是原文件扩展名，query是url中的查询参数（如有）
-                            // :10是指哈希值只取前10位，防止名称过长
-                            filename: 'media/[hash:10][ext][query]'
-                        }
+                        // 上面统一配置 assetModuleFilename，不重复定义
+                        // generator: {
+                        //     // 指定生成的图片存放路径 + 名称
+                        //     // hash是随机哈希值，ext是原文件扩展名，query是url中的查询参数（如有）
+                        //     // :10是指哈希值只取前10位，防止名称过长
+                        //     filename: 'media/[hash:10][ext][query]'
+                        // }
                     },
                     {
                         test: /\.js$/, // babel处理js文件
