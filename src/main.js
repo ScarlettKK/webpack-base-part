@@ -1,5 +1,5 @@
 import count from './utils/count'
-import sum from './utils/sum'
+// import sum from './utils/sum'
 import { used } from './utils/treeShaking'
 
 // 要想webpack打包资源，必须引入该资源，css等样式资源也不例外
@@ -12,8 +12,21 @@ import './styles/index.scss'
 import './styles/index.styl'
 
 console.log(count(2, 1))
-console.log(sum(1, 2, 3, 4, 5, 6))
+// console.log(sum(1, 2, 3, 4, 5, 6))
 used()
+
+// 动态导入：比如给btn绑定事件，用户真正点击的时候才加载对应的函数，没点击不加载
+document.getElementById("btn").onclick = function () {
+    // import 动态导入 --> 实现按需加载
+    // 将动态导入的文件拆分成单独模块（单独分割），在需要的时候再单独加载
+    // 即使只被引用了一次，也会代码分割
+    // eslint不能识别动态导入语法，这里需要单独配置
+    // 使用场景：路由的import语法
+    // 注意这里的sum需要是export而不是export default
+    import("./utils/sum").then(({ sum }) => {
+        alert(sum(1, 2, 3, 4, 5));
+    });
+};
 
 // 判断是否支持热模块替换功能
 if (module.hot) {

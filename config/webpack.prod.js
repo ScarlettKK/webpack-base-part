@@ -282,6 +282,12 @@ module.exports = {
     optimization: {
         // webpack5 推荐压缩配置方式：
         minimize: true,
+        // 代码分割配置
+        // 单入口文件只需要这样配置，全部用默认
+        // 单入口加这个splitChunks配置的作用：如果用上node_modules中代码，会把node_modules中代码打包成单独文件
+        //                                如果有动态导入语法，也会单独打包成文件
+        // 可以看到配置这一项+动态导入语法，可以打包出两个文件
+        splitChunks: { chunks: "all" },
         minimizer: [
             // css压缩也可以写到optimization.minimizer里面，效果一样的
             new CssMinimizerPlugin(),
