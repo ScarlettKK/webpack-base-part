@@ -101,6 +101,8 @@ module.exports = {
         // webpack5最新功能，无需插件
         // 原理：在打包之前，将path整个目录清空，再进行打包
         clean: true,
+        // 动态导入文件（打包生成的其他文件，非入口文件）的输出资源命名方式
+        chunkFilename: "js/[name].chunk.js",
     },
     // 加载器，webpack不能识别的模块，通过loader来识别，如图片、less等
     module: {

@@ -20,10 +20,16 @@ document.getElementById("btn").onclick = function () {
     // import 动态导入 --> 实现按需加载
     // 将动态导入的文件拆分成单独模块（单独分割），在需要的时候再单独加载
     // 即使只被引用了一次，也会代码分割
+
     // eslint不能识别动态导入语法，这里需要单独配置
-    // 使用场景：路由的import语法
+
+    // 项目使用场景：路由的import语法
     // 注意这里的sum需要是export而不是export default
-    import("./utils/sum").then(({ sum }) => {
+
+    // webpackChunkName: "sum"：这是webpack动态导入模块命名的方式，也叫webpack魔法命名
+    // "sum"将来就会作为[name]的值显示。
+    // 但单单这里配置还不够，还需要在webpack pro配置文件中配置
+    import(/* webpackChunkName: "sum" */ "./utils/sum").then(({ sum }) => {
         alert(sum(1, 2, 3, 4, 5));
     });
 };
