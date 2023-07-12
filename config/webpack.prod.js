@@ -139,7 +139,17 @@ module.exports = {
         // 加一个“js/”路径可以让其打包出来的js入口文件分文件夹存放，不乱
         // 其他文件根据path配置，还是存放于dist文件夹下
         // 这里用[name].js，防止改成多文件入口的时候打包错乱，这样可以单/多都兼容
-        filename: "js/[name].js",
+        /**
+         * [contenthash:8]添加原因
+         * 将来开发时我们对静态资源会使用缓存来优化，这样浏览器第二次请求资源就能读取缓存了，速度很快。
+         * 但是这样的话就会有一个问题, 因为前后输出的文件名是一样的，都叫 main.js，
+         * 一旦将来发布新版本，因为文件名没有变化导致浏览器会直接读取缓存，不会加载新资源，项目也就没法更新了。
+         * 所以我们从文件名入手，确保更新前后文件名不一样，这样就可以做缓存了。
+         * 
+         * contenthash:8]：
+         * 根据文件内容生成 hash 值，只有文件内容变化了，hash 值才会变化。所有文件 hash 值是独享且不同的
+         */
+        filename: "js/[name].[contenthash:8].js",
         // 每次打包都自动清空上次打包结果
         // webpack5最新功能，无需插件
         // 原理：在打包之前，将path整个目录清空，再进行打包
@@ -147,7 +157,7 @@ module.exports = {
         // 动态导入文件（打包生成的其他文件，非入口文件）的输出资源命名方式
         // 除了这里还需要在文件中import的地方配置 webpackChunkName: "sum"：
         // 使用.chunk.js可以区分主文件跟其他文件
-        chunkFilename: "js/[name].chunk.js",
+        chunkFilename: "js/[name].[contenthash:8].chunk.js",
         // 图片、字体等通过 type:asset* 处理资源命名方式（注意用hash）
         assetModuleFilename: "assets/[hash:10][ext][query]",
     },
@@ -319,9 +329,9 @@ module.exports = {
         new MiniCssExtractPlugin({
             // 定义输出文件名和目录
             // [name]: 文件名主动适配，适用于单/多入口
-            filename: "styles/[name].css",
+            filename: "styles/[name].[contenthash:8].css",
             // 如果动态导入js中有css，也会单独打包
-            chunkFilename: "styles/[name].chunk.css",
+            chunkFilename: "styles/[name].[contenthash:8].chunk.css",
         }),
         //下面的压缩方式是旧的webpack4
 
@@ -348,6 +358,22 @@ module.exports = {
         //                                如果有动态导入语法，也会单独打包成文件
         // 可以看到配置这一项+动态导入语法，可以打包出两个文件
         splitChunks: { chunks: "all" },
+        // 提取runtime文件
+
+        // 为什么？
+        // 因为我们前面给文件引入了哈希命名，但我们希望如果文件内容不变，哈希值也不变
+        // 不过现在情况是:
+        // 如果变了子函数（math），主函数不变（main）,
+        // 但此时由于子函数哈希值变了，主函数中引入子函数的路径也需要变，会导致内容没有变化的主函数也重新打包
+
+        // 是什么？
+        // runtime: 生成一个runtime文件，用于保存引用的文件名（打包后的哈希名）
+        // 如main引用math文件，当math文件发生变化，而main不变的时候，不会因为math文件打包后的名称发生改变，导致main也重新打包
+        // 这样单math变动后每次打包，更新的就是math跟runtime文件，而main文件哈希名不变
+        // runtime 中存的是子函数的地址，暴露出一个变量给主函数，主函数只要用这个变量就可以找到子函数
+        runtimeChunk: {
+            name: (entrypoint) => `runtime~${entrypoint.name}.js`, // runtime文件命名规则
+        },
         minimizer: [
             // css压缩也可以写到optimization.minimizer里面，效果一样的
             new CssMinimizerPlugin(),
