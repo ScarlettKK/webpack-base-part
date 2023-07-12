@@ -12,5 +12,17 @@ module.exports = {
      * @babel/preset-react：一个用来编译 React jsx 语法的预设
      * @babel/preset-typescript：一个用来编译 TypeScript 语法的预设
      */
-    presets: ["@babel/preset-env"],
+    // 智能预设：能够编译ES6语法
+    presets: [
+        [
+            "@babel/preset-env",
+            // 按需加载core-js的polyfill
+            // 如如何编写下面的配置可以去 babel 官网查找
+            // useBuiltIns：按需加载自动引入
+            {
+                useBuiltIns: "usage",
+                corejs: { version: "3", proposals: true }
+            },
+        ],
+    ],
 };

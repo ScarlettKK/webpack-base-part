@@ -1,3 +1,13 @@
+/**
+ * 兼容性处理更深一级：有的浏览器不支持promise语法
+ * 而babel并不能处理sync 函数、promise 对象、数组的一些方法（includes）等
+ * 此时我们需要引入core-js补丁
+ * 下面是其中一种引入方法，按需加载，因为我们只需要处理下面的promise语法
+ * 缺点是可能会导致打包体积增大，毕竟这里引入了一个插件
+ * 另一种配置方法是在babel.config.js中，可以做全量语法配置
+ */
+// import "core-js/es/promise";
+
 import count from './utils/count'
 // import sum from './utils/sum'
 import { used } from './utils/treeShaking'
@@ -33,6 +43,12 @@ document.getElementById("btn").onclick = function () {
         alert(sum(1, 2, 3, 4, 5));
     });
 };
+
+// 添加promise代码
+const promise = Promise.resolve();
+promise.then(() => {
+    console.log("hello promise");
+});
 
 // 判断是否支持热模块替换功能
 if (module.hot) {
