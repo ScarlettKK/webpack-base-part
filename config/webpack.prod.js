@@ -101,6 +101,18 @@ const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
 // 打包过后可以看到代码多了这一项：<link href="js/sum.chunk.js" rel="preload" as="script">
 // 针对动态加载不分的代码
 const PreloadWebpackPlugin = require("@vue/preload-webpack-plugin");
+/**
+ * 为什么?
+ * 开发 Web App 项目，项目一旦处于网络离线情况，就没法访问了。
+ * 我们希望给项目提供离线体验。
+ * 
+ * 是什么?
+ * 渐进式网络应用程序(progressive web application - PWA)：
+ * 是一种可以提供类似于 native app(原生应用程序) 体验的 Web App 的技术。
+ * 其中最重要的是，在 离线(offline) 时应用程序能够继续运行功能。
+ * 内部通过 Service Workers 技术实现的。
+ */
+const WorkboxPlugin = require("workbox-webpack-plugin");
 
 // 获取处理样式的Loaders
 // 简化合并重复代码
@@ -348,6 +360,12 @@ module.exports = {
             rel: "preload", // preload兼容性更好
             as: "script",
             // rel: 'prefetch' // prefetch兼容性更差，注意不需要配置“as”
+        }),
+        new WorkboxPlugin.GenerateSW({
+            // 这些选项帮助快速启用 ServiceWorkers
+            // 不允许遗留任何“旧的” ServiceWorkers
+            clientsClaim: true,
+            skipWaiting: true,
         }),
     ],
     optimization: {

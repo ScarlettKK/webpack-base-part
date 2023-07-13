@@ -74,3 +74,41 @@ if (module.hot) {
     // 上面这样写会很麻烦，所以实际开发我们会使用其他 loader 来解决。
     // 比如：vue-loader, react-hot-loader
 }
+
+/**
+ * 为什么?
+ * 开发 Web App 项目，项目一旦处于网络离线情况，就没法访问了。
+ * 我们希望给项目提供离线体验。
+ * 
+ * 是什么?
+ * 渐进式网络应用程序(progressive web application - PWA)：
+ * 是一种可以提供类似于 native app(原生应用程序) 体验的 Web App 的技术。
+ * 其中最重要的是，在 离线(offline) 时应用程序能够继续运行功能。
+ * 内部通过 Service Workers 技术实现的。
+ */
+
+// 注意：serviceWorker还需要在app中注册才能使用
+if ("serviceWorker" in navigator) { // 需要判断存在才使用（有兼容性问题）
+    window.addEventListener("load", () => {
+        navigator.serviceWorker
+            .register("/service-worker.js")
+            .then((registration) => {
+                console.log("SW registered: ", registration);
+            })
+            .catch((registrationError) => {
+                console.log("SW registration failed: ", registrationError);
+            });
+    });
+}
+ /**
+* 此时npm run build后打开html页面，会报错
+* 此时如果直接通过 VSCode 访问打包后页面，在浏览器控制台会发现 SW registration failed。
+* 因为我们打开的访问路径是：http://127.0.0.1:5500/dist/index.html。
+* 此时页面会去请求 service-worker.js 文件，请求路径是：http://127.0.0.1:5500/service-worker.js，这样找不到会 404。
+* 实际 service-worker.js 文件路径是：http://127.0.0.1:5500/dist/service-worker.js。
+* 
+* 解决方案
+* npm i serve -g
+* serve 也是用来启动开发服务器来部署代码查看效果的。
+* 此时通过 serve 启动的服务器我们 service-worker 就能注册成功了。
+*/
